@@ -1,0 +1,74 @@
+{
+  "test_questions": [
+    {
+      "id": "q1",
+      "question": "What are the common causes of BGP session flaps and how to troubleshoot them?",
+      "category": "routing",
+      "difficulty": "medium",
+      "expected_keywords": ["BGP", "flap", "session", "troubleshoot", "hold timer", "keepalive"]
+    },
+    {
+      "id": "q2",
+      "question": "How to configure OSPF area authentication on Cisco routers?",
+      "category": "routing",
+      "difficulty": "medium",
+      "expected_keywords": ["OSPF", "authentication", "area", "Cisco", "md5", "key-chain"]
+    },
+    {
+      "id": "q3",
+      "question": "What steps to take when MPLS LDP session fails to establish?",
+      "category": "mpls",
+      "difficulty": "hard",
+      "expected_keywords": ["MPLS", "LDP", "session", "establish", "transport address", "discovery"]
+    },
+    {
+      "id": "q4",
+      "question": "How to troubleshoot high CPU utilization on a network device?",
+      "category": "performance",
+      "difficulty": "easy",
+      "expected_keywords": ["CPU", "utilization", "high", "process", "interrupt", "show processes"]
+    },
+    {
+      "id": "q5",
+      "question": "What are the best practices for configuring QoS for VoIP traffic?",
+      "category": "qos",
+      "difficulty": "medium",
+      "expected_keywords": ["QoS", "VoIP", "DSCP", "EF", "priority queue", "bandwidth"]
+    },
+    {
+      "id": "q6",
+      "question": "How to diagnose and resolve spanning tree topology changes?",
+      "category": "switching",
+      "difficulty": "medium",
+      "expected_keywords": ["STP", "spanning tree", "topology change", "TCN", "root bridge", "portfast"]
+    },
+    {
+      "id": "q7",
+      "question": "What causes CRC errors on interface and how to fix them?",
+      "category": "physical",
+      "difficulty": "easy",
+      "expected_keywords": ["CRC", "error", "interface", "cable", "duplex", "speed", "negotiation"]
+    },
+    {
+      "id": "q8",
+      "question": "How to configure and verify VRRP/HSRP for gateway redundancy?",
+      "category": "redundancy",
+      "difficulty": "medium",
+      "expected_keywords": ["VRRP", "HSRP", "redundancy", "virtual IP", "priority", "preempt", "tracking"]
+    },
+    {
+      "id": "q9",
+      "question": "What are the steps to troubleshoot IPsec VPN tunnel failures?",
+      "category": "vpn",
+      "difficulty": "hard",
+      "expected_keywords": ["IPsec", "VPN", "tunnel", "IKE", "phase 1", "phase 2", "SA", "encryption"]
+    },
+    {
+      "id": "q10",
+      "question": "How to monitor and troubleshoot multicast traffic issues?",
+      "category": "multicast",
+      "difficulty": "hard",
+      "expected_keywords": ["multicast", "IGMP", "PIM", "RP", "source", "group", "join", "prune"]
+    }
+  ]
+}
