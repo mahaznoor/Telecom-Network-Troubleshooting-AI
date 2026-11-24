@@ -1,10 +1,22 @@
 """Main entry point for the Telecom Network Troubleshooting AI backend."""
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router as api_router
 from backend.config import settings
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan handler."""
+    # Startup
+    print(f"Starting {settings.LLM_MODEL} on {settings.HOST}:{settings.PORT}")
+    print(f"Vector store: {settings.CHROMA_PERSIST_DIR}")
+    yield
+    # Shutdown
+    print("Shutting down...")
 
 
 def create_app() -> FastAPI:
@@ -13,13 +25,14 @@ def create_app() -> FastAPI:
         title="Telecom Network Troubleshooting AI",
         description="AI-powered troubleshooting for telecom network issues",
         version="1.0.0",
+        lifespan=lifespan,
     )
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "DELETE"],
         allow_headers=["*"],
     )
 
