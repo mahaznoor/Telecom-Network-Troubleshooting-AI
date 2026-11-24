@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 4096
 
     # HuggingFace BGE Embedding Settings
-    EMBEDDING_MODEL: str = "BAAI/bge-large-en-v1.5"
-    EMBEDDING_DIMENSION: int = 1024
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+    EMBEDDING_DIMENSION: int = 384
     EMBEDDING_DEVICE: str = "cpu"  # or "cuda" if GPU available
 
     # Vector Store Settings
