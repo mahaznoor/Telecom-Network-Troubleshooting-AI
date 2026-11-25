@@ -1,1 +1,1 @@
-"""Frontend Package for Telecom Network Troubleshooting AI."""
+"""Frontend package for Telecom Intelligence AI."""

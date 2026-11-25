@@ -149,8 +149,14 @@ class ChromaVectorStore:
             return {"error": str(e)}
 
     def persist(self) -> None:
-        """Persist the vector store to disk."""
+        """Persist the vector store to disk.
+        
+        Note: In newer versions of langchain-chroma, persistence is automatic
+        when using persist_directory. This method is kept for compatibility.
+        """
         try:
-            self.vector_store.persist()
+            # Newer versions of Chroma auto-persist; no-op if persist() not available
+            if hasattr(self.vector_store, 'persist'):
+                self.vector_store.persist()
         except Exception as e:
             raise RuntimeError(f"Failed to persist vector store: {e}") from e

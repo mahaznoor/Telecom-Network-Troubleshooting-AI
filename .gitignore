@@ -1,13 +1,7 @@
-
-.env
-.venv/
+﻿.venv/
 venv/
+.env
 __pycache__/
 *.pyc
-.pytest_cache/
-chroma.sqlite3
-storage/chroma/*
-!storage/chroma/.gitkeep
-.DS_Store
-.idea/
+chroma_db/
 .vscode/
