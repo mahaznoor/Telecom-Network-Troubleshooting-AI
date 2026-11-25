@@ -1,10 +1,9 @@
 """RAG chain for question answering using Groq LLM."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from langchain_groq import ChatGroq
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnableParallel
 from langchain_core.documents import Document
 from backend.rag.prompts import get_qa_prompt, get_condense_prompt
 from backend.config import settings
@@ -44,19 +43,24 @@ class RAGChain:
 
     def _build_chain(self):
         """Build the RAG chain with history awareness."""
-        # Chain to condense follow-up questions
+        # Condense follow-up questions before retrieval when chat history exists.
         condense_chain = (
             self.condense_prompt
             | self.llm
             | StrOutputParser()
         )
+        retrieval_question = RunnableBranch(
+            (lambda inputs: not inputs.get("chat_history"), lambda inputs: inputs["question"]),
+            condense_chain,
+        )
+        retrieval_chain = retrieval_question | self.retriever
 
         # Main QA chain
         qa_chain = (
             RunnableParallel({
-                "context": lambda x: self._format_docs(x["context"]),
-                "question": lambda x: x["question"],
-                "chat_history": lambda x: x.get("chat_history", ""),
+                "context": RunnableLambda(lambda inputs: self._format_docs(inputs["context"])),
+                "question": RunnableLambda(lambda inputs: inputs["question"]),
+                "chat_history": RunnableLambda(lambda inputs: inputs.get("chat_history", "")),
             })
             | self.qa_prompt
             | self.llm
@@ -65,9 +69,9 @@ class RAGChain:
 
         # Combined chain with retrieval
         self.chain = RunnableParallel({
-            "context": self.retriever,
-            "question": RunnablePassthrough(),
-            "chat_history": RunnablePassthrough(),
+            "context": retrieval_chain,
+            "question": RunnableLambda(lambda inputs: inputs["question"]),
+            "chat_history": RunnableLambda(lambda inputs: inputs.get("chat_history", "")),
         }).assign(
             answer=qa_chain
         )
