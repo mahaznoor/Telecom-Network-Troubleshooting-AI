@@ -8,8 +8,11 @@ from frontend.components import (
     get_session_id,
     new_session,
     clear_session_history,
-    call_api,
     clear_session,
+    clear_all_sessions,
+    list_chat_sessions,
+    get_chat_session,
+    set_active_session,
 )
 
 
@@ -20,7 +23,7 @@ def format_timestamp(ts: str = None) -> str:
     try:
         dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
         return dt.strftime("%Y-%m-%d %H:%M")
-    except:
+    except (AttributeError, ValueError):
         return ts
 
 
@@ -58,22 +61,65 @@ def render_chat_sessions():
     with col1:
         if st.button("🔄 New Session", use_container_width=True, key="ch_new_session"):
             new_session()
+            st.session_state.current_page = "ai_assistant"
             st.rerun()
     with col2:
         if st.button("🗑️ Clear Current History", use_container_width=True, key="ch_clear_current"):
-            clear_session_history()
-            st.rerun()
+            if messages:
+                result = clear_session(current_session)
+                if "error" in result:
+                    st.error(result["error"])
+                else:
+                    clear_session_history()
+                    st.rerun()
+            else:
+                clear_session_history()
+                st.rerun()
     with col3:
-        if st.button("🗑️ Clear All Sessions", use_container_width=True, key="ch_clear_all"):
-            result = call_api("/chat", "DELETE")
+        if st.button("🗑️ Clear My Sessions", use_container_width=True, key="ch_clear_all"):
+            result = clear_all_sessions()
             if "error" not in result:
                 clear_session_history()
-                st.success("All sessions cleared")
+                new_session()
+                st.success("Your conversations were cleared")
                 st.rerun()
             else:
                 st.error(f"Failed: {result['error']}")
     
     st.markdown("</div>", unsafe_allow_html=True)
+
+    sessions_result = list_chat_sessions()
+    if "error" in sessions_result:
+        st.error(f"Could not load saved conversations: {sessions_result['error']}")
+    else:
+        saved_sessions = sessions_result.get("sessions", [])
+        if saved_sessions:
+            st.markdown("### Saved Conversations")
+            for index, session in enumerate(saved_sessions):
+                session_id = session.get("session_id")
+                if not session_id:
+                    continue
+                title = session.get("title") or "Untitled conversation"
+                columns = st.columns([4, 2, 1])
+                with columns[0]:
+                    st.markdown(f"**{title}**")
+                with columns[1]:
+                    st.caption(
+                        f"{session.get('message_count', 0)} messages · "
+                        f"{format_timestamp(session.get('updated_at'))}"
+                    )
+                with columns[2]:
+                    if st.button("Open", key=f"history_open_{session_id}_{index}"):
+                        conversation = get_chat_session(session_id)
+                        if "error" in conversation:
+                            st.error(conversation["error"])
+                        else:
+                            set_active_session(
+                                conversation["session_id"],
+                                conversation.get("messages", []),
+                            )
+                            st.session_state.current_page = "ai_assistant"
+                            st.rerun()
     
     # Show current session messages
     if messages:
@@ -125,13 +171,15 @@ def render_chat_history_page():
     with col2:
         if st.button("🔄 New Session", use_container_width=True, key="ch_header_new"):
             new_session()
+            st.session_state.current_page = "ai_assistant"
             st.rerun()
     with col3:
-        if st.button("🗑️ Clear All", use_container_width=True, key="ch_header_clear"):
-            result = call_api("/chat", "DELETE")
+        if st.button("🗑️ Clear My Sessions", use_container_width=True, key="ch_header_clear"):
+            result = clear_all_sessions()
             if "error" not in result:
                 clear_session_history()
-                st.success("All sessions cleared")
+                new_session()
+                st.success("Your conversations were cleared")
                 st.rerun()
             else:
                 st.error(f"Failed: {result['error']}")

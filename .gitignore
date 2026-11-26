@@ -4,4 +4,6 @@ venv/
 __pycache__/
 *.pyc
 chroma_db/
+storage/chat_history.sqlite3*
+data/manuals/uploads/
 .vscode/

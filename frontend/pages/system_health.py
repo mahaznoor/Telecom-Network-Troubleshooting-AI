@@ -2,12 +2,16 @@
 
 import streamlit as st
 from datetime import datetime
+from typing import Any, Dict, List
 from frontend.components import (
     init_app_session_state,
-    call_api,
     health_check,
     get_health_status,
     set_health_status,
+)
+from frontend.components.health_status import (
+    get_groq_key_status,
+    get_vector_db_status,
 )
 
 
@@ -18,8 +22,103 @@ def format_timestamp(ts: str = None) -> str:
     try:
         dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
         return dt.strftime("%Y-%m-%d %H:%M:%S")
-    except:
+    except (AttributeError, TypeError, ValueError):
         return ts
+
+
+def build_component_statuses(health: Dict[str, Any], last_check: str) -> List[Dict[str, str]]:
+    """Build component indicators from health data returned by the backend."""
+    vector_status = get_vector_db_status(health)
+    if vector_status["status"] == "available" and vector_status["indexed_chunks"] == 0:
+        vector_db_status = "empty"
+    elif vector_status["status"] == "available":
+        vector_db_status = "available"
+    else:
+        vector_db_status = vector_status["status"]
+
+    groq_key_status = get_groq_key_status(health)
+    groq_configured = health.get("groq_configured")
+    groq_client_initialized = health.get("groq_client_initialized")
+    if groq_key_status["status"] == "not_configured":
+        groq_status = "not_configured"
+        groq_details = "Credentials are not configured"
+    elif groq_configured is True and groq_client_initialized is False:
+        groq_status = "degraded"
+        groq_details = "Credentials are configured, but client initialization failed"
+    elif groq_configured is True and groq_client_initialized is True:
+        groq_status = "configured"
+        groq_details = "Client initialized; provider connectivity was not tested"
+    elif groq_configured is True:
+        groq_status = "configured"
+        groq_details = "Credentials are configured; provider connectivity was not tested"
+    else:
+        groq_status = "unknown"
+        groq_details = "Configuration status was not reported"
+
+    embedding_model = health.get("embedding_model")
+    if embedding_model and embedding_model != "unknown":
+        embedding_status = "configured"
+        embedding_details = f"{embedding_model}; inference was not tested"
+    else:
+        embedding_status = "unknown"
+        embedding_details = "Model configuration was not reported"
+
+    if vector_db_status == "available":
+        indexed_chunks = vector_status["indexed_chunks"]
+        vector_db_details = (
+            f"{indexed_chunks} indexed chunks"
+            if indexed_chunks is not None
+            else "Indexed chunk count was not reported"
+        )
+    elif vector_db_status == "empty":
+        vector_db_details = "Database is available but contains no indexed chunks"
+    elif vector_db_status == "unavailable":
+        vector_db_details = "Database query failed"
+    else:
+        vector_db_details = "Database availability was not reported"
+
+    return [
+        {
+            "name": "FastAPI Backend",
+            "icon": "🚀",
+            "status": "online",
+            "description": "Health endpoint returned a response",
+            "details": f"API v{health.get('version', 'unknown')}",
+            "last_check": last_check,
+        },
+        {
+            "name": "Groq LLM",
+            "icon": "🤖",
+            "status": groq_status,
+            "description": "Credential and local client state; remote connectivity is not probed",
+            "details": f"{health.get('llm_model', 'Model not reported')} | {groq_details}",
+            "last_check": last_check,
+        },
+        {
+            "name": "HuggingFace Embeddings",
+            "icon": "🧠",
+            "status": embedding_status,
+            "description": "Configured local embedding model; inference is not probed",
+            "details": embedding_details,
+            "last_check": last_check,
+        },
+        {
+            "name": "ChromaDB Vector Store",
+            "icon": "🗄️",
+            "status": vector_db_status,
+            "description": "Availability and indexed chunk count from the backend",
+            "details": vector_db_details,
+            "last_check": last_check,
+        },
+        {
+            "name": "Document Ingestion Pipeline",
+            "icon": "📥",
+            "status": "not_checked",
+            "description": "A health check does not run ingestion or write to the vector store",
+            "details": "Verify ingestion by using the Knowledge Base upload workflow",
+            "last_check": last_check,
+        },
+    ]
 
 
 def render_component_card(component: dict):
@@ -27,11 +126,17 @@ def render_component_card(component: dict):
     status = component.get("status", "unknown")
     status_colors = {
         "online": ("success", "🟢", "var(--color-success)"),
+        "available": ("success", "🟢", "var(--color-success)"),
         "degraded": ("warning", "🟡", "var(--color-warning)"),
+        "empty": ("warning", "🟡", "var(--color-warning)"),
         "offline": ("error", "🔴", "var(--color-error)"),
+        "unavailable": ("error", "🔴", "var(--color-error)"),
         "not_configured": ("neutral", "⚪", "var(--color-text-muted)"),
+        "configured": ("neutral", "⚙️", "var(--color-text-muted)"),
+        "not_checked": ("neutral", "⚪", "var(--color-text-muted)"),
+        "unknown": ("neutral", "⚪", "var(--color-text-muted)"),
     }
-    status_class, status_icon, status_color = status_colors.get(status, ("neutral", "⚪", "var(--color-text-muted)"))
+    status_class, status_icon, _ = status_colors.get(status, ("neutral", "⚪", "var(--color-text-muted)"))
     
     st.markdown(f"""
     <div class="card" style="height: 100%;">
@@ -74,22 +179,23 @@ def render_system_health_page():
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        if st.button("🔄 Refresh Health", use_container_width=True, type="primary", key="sh_refresh"):
+        if st.button("🔄 Refresh Health", width="stretch", type="primary", key="sh_refresh"):
             with st.spinner("Checking system health..."):
                 result = health_check()
                 set_health_status(result)
+                st.session_state["health_status_checked_at"] = datetime.now().isoformat()
             st.rerun()
     
     # Get health status
     health = get_health_status()
-    last_check = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    last_check = format_timestamp(st.session_state.get("health_status_checked_at"))
     
     if not health:
         st.info("Click 'Refresh Health' to check system status.")
         return
     
     if "error" in health:
-        st.error(f"Health check failed: {health['error']}")
+        st.error(health["error"], title="Health check failed")
         return
     
     # Overall status banner
@@ -106,6 +212,7 @@ def render_system_health_page():
         <div>
             <div style="font-weight: 600; font-size: 1.125rem; color: var(--color-{status_class});">{status_text}</div>
             <div style="font-size: 0.875rem; color: var(--color-text-muted);">Last check: {last_check}</div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted);">Groq provider connectivity and embedding inference are not tested.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -113,48 +220,7 @@ def render_system_health_page():
     # Component health cards
     st.markdown("### Component Status")
     
-    components = [
-        {
-            "name": "FastAPI Backend",
-            "icon": "🚀",
-            "status": "online" if "error" not in health else "offline",
-            "description": "API server and REST endpoints",
-            "details": f"v1.0.0 | Running on port 8000",
-            "last_check": last_check,
-        },
-        {
-            "name": "Groq LLM API",
-            "icon": "🤖",
-            "status": "online" if health.get("groq_configured") else "not_configured",
-            "description": "Large language model provider",
-            "details": health.get("llm_model", "Not configured"),
-            "last_check": last_check,
-        },
-        {
-            "name": "HuggingFace Embeddings",
-            "icon": "🧠",
-            "status": "online",
-            "description": "Local embedding model inference",
-            "details": health.get("embedding_model", "BAAI/bge-small-en-v1.5"),
-            "last_check": last_check,
-        },
-        {
-            "name": "ChromaDB Vector Store",
-            "icon": "🗄️",
-            "status": "online" if health.get("vector_db_ready") else "degraded",
-            "description": "Vector database for document retrieval",
-            "details": f"{health.get('document_count', 0)} documents indexed",
-            "last_check": last_check,
-        },
-        {
-            "name": "Document Ingestion Pipeline",
-            "icon": "📥",
-            "status": "online",
-            "description": "PDF processing and indexing workflow",
-            "details": "PyMuPDF + LangChain text splitter",
-            "last_check": last_check,
-        },
-    ]
+    components = build_component_statuses(health, last_check)
     
     cols = st.columns(2)
     for idx, comp in enumerate(components):
@@ -173,10 +239,12 @@ def render_system_health_page():
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        vector_status = get_vector_db_status(health)
+        indexed_chunks = vector_status["indexed_chunks"]
         st.metric(
-            "Indexed Documents",
-            health.get("document_count", 0),
-            help="Total documents in vector store"
+            "Indexed Chunks",
+            indexed_chunks if indexed_chunks is not None else "Unknown",
+            help="Number of chunks reported by the vector store"
         )
     
     with col2:
@@ -203,14 +271,33 @@ def render_system_health_page():
     <div class="card">
     """, unsafe_allow_html=True)
     
+    groq_key_status = get_groq_key_status(health)
+    groq_client_initialized = health.get("groq_client_initialized")
+    groq_credentials = (groq_key_status["label"], "neutral")
+
+    if groq_client_initialized is None:
+        groq_client = ("Unreported", "neutral")
+    elif groq_client_initialized:
+        groq_client = ("Initialized", "success")
+    else:
+        groq_client = ("Not initialized", "warning")
+
+    vector_status = get_vector_db_status(health)
+    if vector_status["status"] == "unknown":
+        vector_db = ("Unreported", "neutral")
+    elif vector_status["status"] == "unavailable":
+        vector_db = ("Unavailable", "error")
+    elif vector_status["indexed_chunks"] != 0:
+        vector_db = ("Available", "success")
+    else:
+        vector_db = ("Available, empty", "warning")
+
+    embedding_model = health.get("embedding_model")
     configs = [
-        ("GROQ_API_KEY", "Configured" if health.get("groq_configured") else "Not Set", "success" if health.get("groq_configured") else "error"),
-        ("EMBEDDING_MODEL", health.get("embedding_model", "BAAI/bge-small-en-v1.5"), "success"),
-        ("EMBEDDING_DIMENSION", "384", "success"),
-        ("CHROMA_PERSIST_DIR", "./storage/chroma", "success"),
-        ("CHROMA_COLLECTION", "telecom_manuals", "success"),
-        ("TOP_K", "5", "success"),
-        ("SIMILARITY_THRESHOLD", "0.7", "success"),
+        ("Groq credentials", groq_credentials[0], groq_credentials[1]),
+        ("Groq client initialization", groq_client[0], groq_client[1]),
+        ("Embedding model", embedding_model or "Unreported", "neutral"),
+        ("ChromaDB query", vector_db[0], vector_db[1]),
     ]
     
     for name, value, status in configs:

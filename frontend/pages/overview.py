@@ -1,5 +1,6 @@
 """Overview dashboard page with real backend statistics."""
 
+from html import escape
 import streamlit as st
 from datetime import datetime
 from frontend.components import (
@@ -8,6 +9,10 @@ from frontend.components import (
     get_health_status,
     get_ingestion_status,
     get_session_id,
+)
+from frontend.components.health_status import (
+    get_groq_key_status,
+    get_vector_db_status,
 )
 
 
@@ -18,15 +23,15 @@ def format_timestamp(ts: str = None) -> str:
     try:
         dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
         return dt.strftime("%Y-%m-%d %H:%M")
-    except:
+    except (AttributeError, TypeError, ValueError):
         return ts
 
 
 def render_kpi_cards(health: dict):
     """Render KPI metric cards."""
-    doc_count = health.get("document_count", 0)
-    vector_ready = health.get("vector_db_ready", False)
-    groq_ready = health.get("groq_configured", False)
+    groq_status = get_groq_key_status(health)
+    vector_status = get_vector_db_status(health)
+    indexed_chunks = vector_status["indexed_chunks"]
     
     # We need to calculate chunks - let's get it from ingestion status or estimate
     ingestion = get_ingestion_status()
@@ -41,8 +46,8 @@ def render_kpi_cards(health: dict):
                 <div class="kpi-icon">📄</div>
                 <span class="kpi-trend neutral">Total</span>
             </div>
-            <div class="kpi-value">{doc_count}</div>
-            <div class="kpi-label">Indexed Documents</div>
+            <div class="kpi-value">{indexed_chunks if indexed_chunks is not None else '—'}</div>
+            <div class="kpi-label">Indexed Chunks</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -54,32 +59,36 @@ def render_kpi_cards(health: dict):
                 <span class="kpi-trend neutral">Total</span>
             </div>
             <div class="kpi-value">{chunks_count if chunks_count > 0 else '—'}</div>
-            <div class="kpi-label">Knowledge Chunks</div>
+            <div class="kpi-label">Last Ingested Batch</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        status_text = "Ready" if groq_ready else "Not Configured"
-        status_class = "success" if groq_ready else "error"
-        trend_class = "success" if groq_ready else "error"
+        status_text = groq_status["label"]
+        trend_class = "neutral" if groq_status["status"] != "not_configured" else "error"
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-header">
-                <div class="kpi-icon {'success' if groq_ready else 'error'}">🤖</div>
+                <div class="kpi-icon">{'⚙️' if groq_status['status'] == 'configured' else '🤖'}</div>
                 <span class="kpi-trend {trend_class}">{status_text}</span>
             </div>
             <div class="kpi-value" style="font-size: 1.25rem;">{status_text}</div>
-            <div class="kpi-label">AI Service Status</div>
+            <div class="kpi-label">Groq API key status</div>
+            <div class="kpi-label">{groq_status['details']}</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
-        db_text = "Healthy" if vector_ready else "Empty"
-        db_class = "success" if vector_ready else "warning"
+        db_text = vector_status["label"]
+        db_class = {
+            "available": "success",
+            "unavailable": "error",
+            "unknown": "neutral",
+        }[vector_status["status"]]
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-header">
-                <div class="kpi-icon {'success' if vector_ready else 'warning'}">🗄️</div>
+                <div class="kpi-icon">{'🗄️' if vector_status['status'] == 'available' else '⚠️'}</div>
                 <span class="kpi-trend {db_class}">{db_text}</span>
             </div>
             <div class="kpi-value" style="font-size: 1.25rem;">{db_text}</div>
@@ -103,26 +112,32 @@ def render_knowledge_base_overview():
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        vector_status = get_vector_db_status(health or {})
+        indexed_chunks = vector_status["indexed_chunks"]
         st.metric(
-            label="Uploaded PDFs",
-            value=health.get("document_count", 0) if health else 0,
-            help="Number of PDF documents ingested"
+            label="Indexed Chunks",
+            value=indexed_chunks if indexed_chunks is not None else "—",
+            help="Number of chunks reported by the vector store when it is available"
         )
     
     with col2:
         chunks = ingestion.get("chunks_created", 0) if ingestion and ingestion.get("status") == "success" else 0
         st.metric(
-            label="Total Chunks",
+            label="Last Batch Chunks",
             value=chunks,
-            help="Total text chunks created from documents"
+            help="Chunks created by the most recent ingestion in this session"
         )
     
     with col3:
-        last_ingestion = ingestion.get("timestamp") if ingestion else None
+        last_ingestion = ingestion.get("completed_at") if ingestion else None
         st.metric(
-            label="Last Ingestion",
-            value=format_timestamp(last_ingestion) if last_ingestion else "Never",
-            help="Timestamp of last successful ingestion"
+            label="Last Batch Completed",
+            value=(
+                format_timestamp(last_ingestion)
+                if last_ingestion
+                else "Not in this session"
+            ),
+            help="Completion time reported for the latest ingestion in this session"
         )
     
     st.markdown("</div>", unsafe_allow_html=True)
@@ -138,6 +153,10 @@ def render_system_components():
     """, unsafe_allow_html=True)
     
     health = get_health_status()
+    health_data = health or {}
+    groq_status = get_groq_key_status(health_data)
+    vector_status = get_vector_db_status(health_data)
+    indexed_chunks = vector_status["indexed_chunks"]
     
     components = [
         {
@@ -148,9 +167,10 @@ def render_system_components():
         },
         {
             "name": "Groq LLM",
-            "status": "online" if health and health.get("groq_configured") else "offline",
-            "description": "Language model provider",
-            "details": health.get("llm_model", "Not configured") if health else "Unknown"
+            "status": groq_status["status"],
+            "status_label": groq_status["label"],
+            "description": "API key configuration; provider connectivity is not tested",
+            "details": health_data.get("llm_model", "Model not reported")
         },
         {
             "name": "HuggingFace Embeddings",
@@ -160,9 +180,14 @@ def render_system_components():
         },
         {
             "name": "ChromaDB Vector Store",
-            "status": "online" if health and health.get("vector_db_ready") else "degraded",
-            "description": "Vector database",
-            "details": f"{health.get('document_count', 0)} documents indexed" if health else "Unknown"
+            "status": vector_status["status"],
+            "status_label": vector_status["label"],
+            "description": "Database availability is separate from indexed content",
+            "details": (
+                f"{indexed_chunks} indexed chunks"
+                if indexed_chunks is not None
+                else "Indexed chunk count unavailable"
+            )
         },
     ]
     
@@ -171,6 +196,11 @@ def render_system_components():
             "online": ("success", "🟢"),
             "degraded": ("warning", "🟡"),
             "offline": ("error", "🔴"),
+            "available": ("success", "🟢"),
+            "unavailable": ("error", "🔴"),
+            "configured": ("neutral", "⚙️"),
+            "not_configured": ("neutral", "⚪"),
+            "unknown": ("neutral", "⚪"),
         }
         status_class, status_icon = status_colors.get(comp["status"], ("neutral", "⚪"))
         
@@ -184,7 +214,7 @@ def render_system_components():
                 </div>
             </div>
             <div style="text-align: right;">
-                <span class="badge badge-{status_class}">{comp['status'].title()}</span>
+                <span class="badge badge-{status_class}">{comp.get('status_label', comp['status'].title())}</span>
                 <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">{comp['details']}</div>
             </div>
         </div>
@@ -211,7 +241,11 @@ def render_recent_activity():
         for msg in reversed(recent):
             role_icon = "👤" if msg["role"] == "user" else "🤖"
             role_label = "You" if msg["role"] == "user" else "AI Assistant"
-            preview = msg["content"][:100] + ("..." if len(msg["content"]) > 100 else "")
+            message_content = str(msg.get("content", ""))
+            preview = escape(
+                message_content[:100]
+                + ("..." if len(message_content) > 100 else "")
+            )
             
             st.markdown(f"""
             <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-divider);">
@@ -220,7 +254,6 @@ def render_recent_activity():
                     <div style="font-weight: 500; color: var(--color-text-primary);">{role_label}</div>
                     <div style="font-size: 0.875rem; color: var(--color-text-secondary);">{preview}</div>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--color-text-muted);">Just now</div>
             </div>
             """, unsafe_allow_html=True)
     else:

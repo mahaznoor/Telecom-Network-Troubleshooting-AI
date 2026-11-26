@@ -48,10 +48,8 @@ class TelecomRetriever(BaseRetriever):
                     for doc, score in scored_docs
                     if score <= threshold
                 }
-                if scored_content:
-                    docs = [d for d in docs if d.page_content in scored_content]
-                    # Sort by score to maintain relevance order
-                    docs.sort(key=lambda d: scored_content.get(d.page_content, float('inf')))
+                docs = [d for d in docs if d.page_content in scored_content]
+                docs.sort(key=lambda d: scored_content[d.page_content])
             return docs
 
         else:

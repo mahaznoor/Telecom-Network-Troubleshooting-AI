@@ -1,5 +1,6 @@
 """AI Troubleshooting Assistant page - Premium chat interface."""
 
+from html import escape
 import streamlit as st
 from frontend.components import (
     init_app_session_state,
@@ -11,6 +12,7 @@ from frontend.components import (
     add_message,
     call_api,
     set_health_status,
+    submit_response_feedback,
 )
 
 
@@ -24,25 +26,30 @@ SUGGESTED_QUESTIONS = [
 
 
 def format_structured_answer(answer: str) -> str:
-    """Format the AI answer into structured sections if not already formatted."""
-    # Check if answer already has structured sections
-    sections = [
-        "Problem Summary",
+    """Normalize structured section labels while leaving general replies alone."""
+    heading_aliases = {
+        "Problem Summary": "Issue Summary",
+        "Diagnostic Steps": "Step-by-Step Troubleshooting",
+        "Recommended Actions": "Recommended Solution",
+        "Source References": "Sources / References",
+    }
+    valid_headings = {
+        "Issue Summary",
         "Possible Causes",
-        "Diagnostic Steps",
-        "Recommended Actions",
-        "Safety Precautions",
-        "Source References",
-    ]
-    
-    has_structure = any(section.lower() in answer.lower() for section in sections)
-    
-    if has_structure:
-        # Already structured, just return
-        return answer
-    
-    # Not structured, return as-is with basic formatting
-    return answer
+        "Step-by-Step Troubleshooting",
+        "Recommended Solution",
+        "Verification Steps",
+        "Sources / References",
+    }
+    formatted_lines = []
+    for line in answer.strip().splitlines():
+        candidate = line.strip().lstrip("#").strip().strip("*").strip().rstrip(":").strip()
+        heading = heading_aliases.get(candidate, candidate)
+        if heading in valid_headings:
+            formatted_lines.append(f"## {heading}")
+        else:
+            formatted_lines.append(line)
+    return "\n".join(formatted_lines)
 
 
 def render_source_citations(sources: list):
@@ -53,9 +60,11 @@ def render_source_citations(sources: list):
     st.markdown("### 📚 Source References")
     
     for i, source in enumerate(sources, 1):
-        source_file = source.get("source_file", "Unknown")
-        page_number = source.get("page_number", "Unknown")
-        preview = source.get("content_preview", "No preview available")
+        source_file = escape(str(source.get("source_file", "Unknown")))
+        page_number = escape(str(source.get("page_number", "Unknown")))
+        preview = escape(
+            str(source.get("content_preview", "No preview available"))
+        )
         
         st.markdown(f"""
         <div class="source-citation">
@@ -66,6 +75,53 @@ def render_source_citations(sources: list):
             <div class="source-citation-content">{preview}</div>
         </div>
         """, unsafe_allow_html=True)
+
+
+def render_response_feedback(session_id: str, message_id: int) -> None:
+    """Render a rating form tied to one persisted assistant response."""
+    rating_key = f"feedback_rating_{session_id}_{message_id}"
+    comment_key = f"feedback_comment_{session_id}_{message_id}"
+    form_key = f"feedback_form_{session_id}_{message_id}"
+
+    st.caption("Rate this response: 👍 Helpful · 👎 Not helpful")
+    with st.form(key=form_key, border=False):
+        rating = st.feedback(
+            "thumbs",
+            key=rating_key,
+            persist_state="session",
+        )
+        comment = st.text_area(
+            "Optional comment (maximum 1000 characters)",
+            key=comment_key,
+            max_chars=1000,
+            placeholder="What was helpful or what could be improved?",
+            help=(
+                "Do not include API keys, passwords, or other sensitive information. "
+                "When updating a rating, leaving this blank keeps any saved comment."
+            ),
+            persist_state="session",
+        )
+        submitted = st.form_submit_button(
+            "Submit feedback",
+            key=f"feedback_submit_{session_id}_{message_id}",
+        )
+
+    if not submitted:
+        return
+    if rating is None:
+        st.warning("Choose Helpful or Not helpful before submitting feedback.")
+        return
+
+    result = submit_response_feedback(
+        session_id=session_id,
+        message_id=message_id,
+        rating="helpful" if rating == 1 else "not_helpful",
+        comment=comment.strip() or None,
+    )
+    if "error" in result:
+        st.error(result["error"])
+    else:
+        st.success("Feedback saved. Submit again to change your rating or comment.")
 
 
 def render_suggested_questions():
@@ -107,8 +163,12 @@ def handle_user_question(question: str):
                 use_mmr=use_mmr,
             )
         
+        response_session_id = result.get("session_id")
+        if response_session_id:
+            st.session_state.session_id = response_session_id
+
         if "error" in result:
-            error_msg = f"❌ **Error:** {result['error']}"
+            error_msg = f"❌ **Error:** {result.get('answer') or result['error']}"
             st.error(error_msg)
             add_message("assistant", error_msg)
         else:
@@ -123,7 +183,13 @@ def handle_user_question(question: str):
             if sources:
                 render_source_citations(sources)
             
-            add_message("assistant", formatted_answer, sources)
+            add_message(
+                "assistant",
+                formatted_answer,
+                sources,
+                message_id=result.get("message_id"),
+            )
+    st.rerun()
 
 
 def render_chat_interface():
@@ -152,9 +218,12 @@ def render_chat_interface():
             # Display chat history
             for message in messages:
                 with st.chat_message(message["role"]):
-                    st.markdown(message["content"])
+                    st.markdown(format_structured_answer(message["content"]))
                     if message.get("sources"):
                         render_source_citations(message["sources"])
+                    message_id = message.get("message_id")
+                    if message["role"] == "assistant" and isinstance(message_id, int):
+                        render_response_feedback(get_session_id(), message_id)
     
     # Chat input (fixed at bottom)
     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
@@ -190,8 +259,16 @@ def render_ai_assistant_page():
             st.rerun()
     with col3:
         if st.button("🗑️ Clear History", use_container_width=True, key="ai_clear_history"):
-            clear_session_history()
-            st.rerun()
+            if get_chat_history():
+                result = clear_session(get_session_id())
+                if "error" in result:
+                    st.error(result["error"])
+                else:
+                    clear_session_history()
+                    st.rerun()
+            else:
+                clear_session_history()
+                st.rerun()
     
     st.divider()
     

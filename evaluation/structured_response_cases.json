@@ -1,0 +1,108 @@
+{
+  "evaluation_cases": [
+    {
+      "id": "troubleshooting-grounded",
+      "scenario": "Network troubleshooting answer grounded in a retrieved manual",
+      "question": "How should I investigate a fiber link alarm?",
+      "context": "[Source: FiberGuide.pdf, Page: 12]\nThe link alarm indicates that the optical link is down. Check the receive optical power and inspect the connector before replacing hardware.",
+      "mock_response": "## Issue Summary\nThe optical link is down.\n\n## Possible Causes\nThe received optical power may be low, or the connector may need inspection.\n\n## Step-by-Step Troubleshooting\n1. Check the receive optical power.\n2. Inspect the connector before replacing hardware.\n\n## Recommended Solution\nAddress the issue identified by those checks; the supplied documentation does not specify further repair steps.\n\n## Verification Steps\nConfirm that the link alarm clears after the documented checks.\n\n## Sources / References\n[Source: FiberGuide.pdf, Page: 12]",
+      "expects_structured_response": true,
+      "requires_citation": true,
+      "expected_citations": [
+        {
+          "source_file": "FiberGuide.pdf",
+          "page": 12
+        }
+      ],
+      "required_phrases": [
+        "optical link is down",
+        "receive optical power"
+      ],
+      "forbidden_phrases": [
+        "reboot the olt"
+      ],
+      "technical_claim_candidates": [
+        "replace the transceiver"
+      ]
+    },
+    {
+      "id": "insufficient-command-context",
+      "scenario": "Request for a command that is not present in the retrieved documentation",
+      "question": "Which CLI command factory-resets this ONT?",
+      "context": "",
+      "mock_response": "## Issue Summary\nThe requested reset procedure is not covered by the available documentation.\n\n## Possible Causes\nThere is not enough information to determine the device-specific procedure.\n\n## Step-by-Step Troubleshooting\n1. Check the ONT's official model-specific manual.\n\n## Recommended Solution\nI cannot recommend a reset command without supporting documentation.\n\n## Verification Steps\nConfirm the procedure with the device vendor before making changes.\n\n## Sources / References\nNo relevant source was retrieved.",
+      "expects_structured_response": true,
+      "expects_insufficient_context": true,
+      "requires_citation": false,
+      "command_candidates": [
+        "factory-reset",
+        "erase startup-config"
+      ],
+      "forbidden_phrases": [
+        "factory-reset",
+        "erase startup-config"
+      ],
+      "technical_claim_candidates": [
+        "the reset command is ont reset"
+      ]
+    },
+    {
+      "id": "general-greeting",
+      "scenario": "General non-technical question receives a concise natural response",
+      "question": "Hi, what can you help me with?",
+      "context": "",
+      "mock_response": "Hello! I can help investigate network issues or explain information from your documentation.",
+      "response_kind": "general",
+      "maximum_word_count": 30,
+      "expects_structured_response": false,
+      "requires_citation": false
+    },
+    {
+      "id": "citation-required",
+      "scenario": "Technical answer includes a correctly formatted source and page citation",
+      "question": "What does the LOS indicator mean?",
+      "context": "[Source: OpticalManual.pdf, Page: 5]\nThe LOS indicator illuminates when the received optical signal is absent.",
+      "mock_response": "## Issue Summary\nThe LOS indicator reports loss of optical signal.\n\n## Possible Causes\nWhen the indicator illuminates, the received optical signal is absent.\n\n## Step-by-Step Troubleshooting\n1. Check whether the received optical signal is present.\n\n## Recommended Solution\nFollow the equipment-specific procedure in the manual; no repair action is specified in this excerpt.\n\n## Verification Steps\nConfirm the LOS indicator status after checking the signal.\n\n## Sources / References\n[Source: OpticalManual.pdf, Page: 5]",
+      "expects_structured_response": true,
+      "requires_citation": true,
+      "expected_citations": [
+        {
+          "source_file": "OpticalManual.pdf",
+          "page": 5
+        }
+      ],
+      "required_phrases": [
+        "received optical signal is absent"
+      ]
+    },
+    {
+      "id": "documented-diagnostic-command",
+      "scenario": "A documented read-only command is cited and unsupported commands are excluded",
+      "question": "Which read-only command shows current interface link state?",
+      "context": "[Source: InterfaceGuide.pdf, Page: 21]\nUse the read-only command `show interface status` to view current link state. Do not run any configuration commands during initial diagnosis.",
+      "mock_response": "## Issue Summary\nYou need to inspect the current interface link state.\n\n## Possible Causes\nThe available documentation does not identify a cause for a specific link condition.\n\n## Step-by-Step Troubleshooting\n1. Run the documented read-only command `show interface status` to view current link state.\n\n## Recommended Solution\nUse the displayed status to guide further checks; this excerpt does not specify configuration changes.\n\n## Verification Steps\nConfirm that the command output reflects the interface's current link state.\n\n## Sources / References\n[Source: InterfaceGuide.pdf, Page: 21]",
+      "expects_structured_response": true,
+      "requires_citation": true,
+      "expected_citations": [
+        {
+          "source_file": "InterfaceGuide.pdf",
+          "page": 21
+        }
+      ],
+      "required_phrases": [
+        "current link state"
+      ],
+      "command_candidates": [
+        "show interface status",
+        "debug all",
+        "configure terminal"
+      ],
+      "required_commands": [
+        "show interface status"
+      ],
+      "technical_claim_candidates": [
+        "the command clears the interface configuration"
+      ]
+    }
+  ]
+}

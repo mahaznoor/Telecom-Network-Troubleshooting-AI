@@ -1,6 +1,8 @@
 """PDF Loader for telecom manuals ingestion using PyMuPDF."""
 
-import fitz  # PyMuPDF
+import hashlib
+import pymupdf
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 from langchain_core.documents import Document
@@ -9,7 +11,7 @@ from langchain_core.documents import Document
 class PDFLoader:
     """Load and process PDF documents from telecom manuals.
 
-    Uses PyMuPDF (fitz) for high-quality text extraction with page numbers
+    Uses PyMuPDF for high-quality text extraction with page numbers
     and metadata preservation.
     """
 
@@ -26,30 +28,61 @@ class PDFLoader:
             List of Document objects with page content and metadata.
         """
         documents = []
-        source_file = Path(file_path).name
+        path = Path(file_path)
+        source_file = path.name
 
         try:
-            doc = fitz.open(file_path)
+            if path.suffix.lower() != ".pdf":
+                raise ValueError("File must have a .pdf extension")
+            if not path.is_file():
+                raise FileNotFoundError("File does not exist")
 
-            for page_num in range(len(doc)):
-                page = doc[page_num]
-                text = page.get_text()
+            file_size_bytes = path.stat().st_size
+            if file_size_bytes == 0:
+                raise ValueError("PDF file is empty")
 
-                if text.strip():  # Only add non-empty pages
-                    metadata = {
-                        "source_file": source_file,
-                        "source_path": str(file_path),
-                        "page_number": page_num + 1,  # 1-based page numbering
-                        "total_pages": len(doc),
-                    }
-                    documents.append(Document(page_content=text, metadata=metadata))
+            file_hash = self._get_file_hash(path)
+            ingested_at = datetime.now(timezone.utc).isoformat()
+            doc = pymupdf.open(file_path)
+            try:
+                total_pages = len(doc)
+                if total_pages == 0:
+                    raise ValueError("PDF contains no pages")
 
-            doc.close()
+                for page_num in range(total_pages):
+                    page = doc[page_num]
+                    text = page.get_text()
+
+                    if text.strip():
+                        metadata = {
+                            "source_file": source_file,
+                            "source_path": str(file_path),
+                            "page_number": page_num + 1,
+                            "total_pages": total_pages,
+                            "file_size_bytes": file_size_bytes,
+                            "file_hash": file_hash,
+                            "ingested_at": ingested_at,
+                        }
+                        documents.append(Document(page_content=text, metadata=metadata))
+            finally:
+                doc.close()
+
+            if not documents:
+                raise ValueError("PDF contains no extractable text")
 
         except Exception as e:
             raise RuntimeError(f"Failed to load PDF {file_path}: {e}") from e
 
         return documents
+
+    @staticmethod
+    def _get_file_hash(path: Path) -> str:
+        """Calculate a file fingerprint without loading the entire PDF into memory."""
+        digest = hashlib.sha256()
+        with path.open("rb") as pdf_file:
+            for block in iter(lambda: pdf_file.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
 
     def load_directory(self, directory: Optional[str] = None) -> List[Document]:
         """Load all PDF files from a directory recursively.
@@ -65,20 +98,19 @@ class PDFLoader:
 
         if not target_dir.exists():
             raise FileNotFoundError(f"Directory not found: {target_dir}")
+        if not target_dir.is_dir():
+            raise NotADirectoryError(f"Not a directory: {target_dir}")
 
-        pdf_files = list(target_dir.glob("**/*.pdf"))
+        pdf_files = sorted(
+            path for path in target_dir.rglob("*")
+            if path.is_file() and path.suffix.lower() == ".pdf"
+        )
 
         if not pdf_files:
-            print(f"No PDF files found in {target_dir}")
             return documents
 
         for pdf_file in pdf_files:
-            try:
-                docs = self.load_pdf(str(pdf_file))
-                documents.extend(docs)
-                print(f"Loaded {len(docs)} pages from {pdf_file.name}")
-            except Exception as e:
-                print(f"Error loading {pdf_file}: {e}")
+            documents.extend(self.load_pdf(str(pdf_file)))
 
         return documents
 
@@ -94,11 +126,6 @@ class PDFLoader:
         documents = []
 
         for file_path in file_paths:
-            try:
-                docs = self.load_pdf(file_path)
-                documents.extend(docs)
-                print(f"Loaded {len(docs)} pages from {Path(file_path).name}")
-            except Exception as e:
-                print(f"Error loading {file_path}: {e}")
+            documents.extend(self.load_pdf(file_path))
 
         return documents

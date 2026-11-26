@@ -3,11 +3,10 @@
 import streamlit as st
 from frontend.components import (
     init_app_session_state,
-    call_api,
-    get_health_status,
     search_documents,
     get_documents_list,
 )
+from frontend.components.document_metadata import build_document_rows
 
 
 DOC_CATEGORIES = [
@@ -132,17 +131,24 @@ def render_network_docs_page():
     
     # Get real document data from backend
     docs_result = get_documents_list()
-    documents = docs_result.get("documents", []) if "error" not in docs_result else []
-    total_docs = docs_result.get("total", 0) if "error" not in docs_result else 0
+    documents_error = docs_result.get("error")
+    documents = docs_result.get("documents", []) if not documents_error else []
+    total_docs = len(documents)
+    if documents_error:
+        st.error(documents_error, title="Could not load indexed documents")
     
-    # For now, distribute docs across categories or show placeholder
-    if total_docs > 0:
-        # Simple distribution for demo
+    if documents_error:
+        st.info("Documentation categories are unavailable until the backend responds.")
+    elif total_docs > 0:
+        category_counts = {category["key"]: 0 for category in DOC_CATEGORIES}
+        for document in documents:
+            for category_key in categorize_document(str(document.get("filename") or "")):
+                category_counts[category_key] += 1
+
         cols = st.columns(4)
         for idx, category in enumerate(DOC_CATEGORIES):
             with cols[idx % 4]:
-                # In a real implementation, this would query actual category counts
-                render_category_card(category, total_docs // len(DOC_CATEGORIES) + (1 if idx < total_docs % len(DOC_CATEGORIES) else 0))
+                render_category_card(category, category_counts[category["key"]])
     else:
         st.markdown("""
         <div class="empty-state">
@@ -166,8 +172,15 @@ def render_network_docs_page():
         </div>
     """, unsafe_allow_html=True)
     
-    if total_docs > 0:
-        st.info("📋 Recent document list requires metadata storage implementation in backend.")
+    if documents_error:
+        st.caption("Recent document information is unavailable until the backend responds.")
+    elif total_docs > 0:
+        recent_documents = sorted(
+            documents,
+            key=lambda document: document.get("ingested_at") or "",
+            reverse=True,
+        )[:5]
+        st.dataframe(build_document_rows(recent_documents), hide_index=True)
     else:
         st.markdown("""
         <div class="empty-state" style="padding: 32px 16px;">

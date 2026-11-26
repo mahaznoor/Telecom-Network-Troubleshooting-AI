@@ -1,6 +1,7 @@
 """ChromaDB vector store for document storage and retrieval."""
 
 import os
+import re
 from typing import List, Optional, Dict, Any
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -147,6 +148,31 @@ class ChromaVectorStore:
             }
         except Exception as e:
             return {"error": str(e)}
+
+    def get_all_metadata(self) -> Dict[str, Any]:
+        """Return stored chunk IDs and metadata without loading document text."""
+        try:
+            return self.vector_store.get(include=["metadatas"])
+        except Exception as e:
+            raise RuntimeError(f"Failed to list ChromaDB metadata: {e}") from e
+
+    def delete_documents_by_file_hash(self, file_hash: str) -> int:
+        """Delete indexed chunks matching one validated PDF content fingerprint."""
+        if not isinstance(file_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", file_hash):
+            raise ValueError("Invalid document identifier.")
+        try:
+            result = self.vector_store.get(
+                where={"file_hash": file_hash},
+                include=["metadatas"],
+            )
+            ids = result.get("ids") or []
+            if not ids:
+                return 0
+            self.vector_store.delete(ids=ids)
+            self.persist()
+            return len(ids)
+        except Exception as e:
+            raise RuntimeError(f"Failed to delete indexed document: {e}") from e
 
     def persist(self) -> None:
         """Persist the vector store to disk.
