@@ -57,7 +57,7 @@ Use one generated value for `JWT_SECRET_KEY` and a different value for
 | Variable | Purpose | Default |
 |---|---|---|
 | `GROQ_API_KEY` | Groq API credential for answer generation | unset |
-| `LLM_MODEL` | Model identifier sent to Groq | `llama-3.1-70b-versatile` |
+| `LLM_MODEL` | Model identifier sent to Groq | `openai/gpt-oss-120b` |
 | `JWT_SECRET_KEY` | HS256 signing secret; at least 32 bytes | unset |
 | `AUDIT_IDENTIFIER_HMAC_SECRET` | Separate key for keyed login-identifier hashes; at least 32 bytes | unset |
 | `ENVIRONMENT` | `development` or `production` security mode | `development` |

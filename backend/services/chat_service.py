@@ -34,6 +34,35 @@ def _redact_sensitive_values(text: str) -> str:
     return _GROQ_API_KEY_PATTERN.sub("[REDACTED_GROQ_API_KEY]", text)
 
 
+_CITATION_PATTERN = re.compile(
+    r"\[\s*Source:\s*(?P<file>[^\]\[]+?)\s*,\s*Page:\s*(?P<page>[^\]\[,]+?)\s*\]",
+    re.IGNORECASE,
+)
+
+
+def strip_unsupported_citations(answer: str, sources: List[Dict[str, Any]]) -> str:
+    """Remove [Source: file, Page: N] citations that match no retrieved source."""
+    if not answer:
+        return answer
+    allowed = {
+        (str(source.get("source_file", "")).strip().lower(), str(source.get("page_number", "")).strip())
+        for source in sources
+    }
+
+    def _keep_or_drop(match: "re.Match[str]") -> str:
+        key = (match.group("file").strip().lower(), match.group("page").strip())
+        return match.group(0) if key in allowed else ""
+
+    cleaned = _CITATION_PATTERN.sub(_keep_or_drop, answer)
+    if cleaned == answer:
+        return answer
+    # Tidy up what removal leaves behind: empty list items and stray spacing.
+    cleaned = re.sub(r"(?m)^[ \t]*(?:[-*+]|\d+[.)])[ \t]*$\n?", "", cleaned)
+    cleaned = re.sub(r"[ \t]+([.,;:])", r"\1", cleaned)
+    cleaned = re.sub(r"(?m)[ \t]+$", "", cleaned)
+    return cleaned
+
+
 def _format_exception_for_logging(error: Exception) -> str:
     """Format an exception traceback while removing configured credentials."""
     formatted = "".join(
@@ -145,6 +174,7 @@ class ChatService:
                     "I couldn't find enough information in the retrieved manuals to answer that."
                 )
                 sources = self._format_sources(context_docs)
+                answer = strip_unsupported_citations(answer, sources)
 
                 # Update session history
                 message_id = self._update_session(

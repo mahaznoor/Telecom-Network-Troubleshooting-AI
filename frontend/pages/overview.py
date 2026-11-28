@@ -5,8 +5,10 @@ import streamlit as st
 from datetime import datetime
 from frontend.components import (
     init_app_session_state,
+    call_api,
     health_check,
     get_health_status,
+    set_health_status,
     get_ingestion_status,
     get_session_id,
 )
@@ -161,7 +163,7 @@ def render_system_components():
     components = [
         {
             "name": "FastAPI Backend",
-            "status": "online" if health and "error" not in health else "offline",
+            "status": "online" if health and not health.get("error") else "offline",
             "description": "API server status",
             "details": f"v1.0.0 | {health.get('llm_model', 'unknown') if health else 'unknown'}"
         },
@@ -305,7 +307,13 @@ def render_quick_actions():
 def render_overview_page():
     """Main overview page renderer."""
     init_app_session_state()
-    
+
+    # Populate health when it is missing or a previous check failed, so the page
+    # does not keep showing "Offline" after login or a transient backend outage.
+    h = get_health_status()
+    if not h or h.get("error"):
+        set_health_status(call_api("/health"))
+
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
@@ -318,7 +326,7 @@ def render_overview_page():
     
     # System status indicator
     health = get_health_status()
-    if health and "error" not in health:
+    if health and not health.get("error"):
         status = health.get("status", "unknown")
         status_class = "success" if status == "healthy" else "warning"
         st.markdown(f"""

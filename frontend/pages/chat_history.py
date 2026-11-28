@@ -67,7 +67,7 @@ def render_chat_sessions():
         if st.button("🗑️ Clear Current History", use_container_width=True, key="ch_clear_current"):
             if messages:
                 result = clear_session(current_session)
-                if "error" in result:
+                if result.get("error"):
                     st.error(result["error"])
                 else:
                     clear_session_history()
@@ -78,7 +78,7 @@ def render_chat_sessions():
     with col3:
         if st.button("🗑️ Clear My Sessions", use_container_width=True, key="ch_clear_all"):
             result = clear_all_sessions()
-            if "error" not in result:
+            if not result.get("error"):
                 clear_session_history()
                 new_session()
                 st.success("Your conversations were cleared")
@@ -89,7 +89,7 @@ def render_chat_sessions():
     st.markdown("</div>", unsafe_allow_html=True)
 
     sessions_result = list_chat_sessions()
-    if "error" in sessions_result:
+    if sessions_result.get("error"):
         st.error(f"Could not load saved conversations: {sessions_result['error']}")
     else:
         saved_sessions = sessions_result.get("sessions", [])
@@ -111,7 +111,7 @@ def render_chat_sessions():
                 with columns[2]:
                     if st.button("Open", key=f"history_open_{session_id}_{index}"):
                         conversation = get_chat_session(session_id)
-                        if "error" in conversation:
+                        if conversation.get("error"):
                             st.error(conversation["error"])
                         else:
                             set_active_session(
@@ -155,7 +155,7 @@ def render_chat_history_page():
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <h1 style="margin: 0 0 8px;">💬 Chat History</h1>
+        <h1 style="margin: 0 0 8px;">Chat History</h1>
         <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
             View and manage your troubleshooting conversation sessions.
         </p>
@@ -176,7 +176,7 @@ def render_chat_history_page():
     with col3:
         if st.button("🗑️ Clear My Sessions", use_container_width=True, key="ch_header_clear"):
             result = clear_all_sessions()
-            if "error" not in result:
+            if not result.get("error"):
                 clear_session_history()
                 new_session()
                 st.success("Your conversations were cleared")

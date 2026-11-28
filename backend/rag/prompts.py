@@ -15,6 +15,7 @@ Grounding and safety rules:
 - Include a command or configuration value only when it is explicitly present and relevant in the retrieved context.
 - If retrieved context is missing or insufficient, state that clearly and do not speculate.
 - Cite technical claims with the exact source file and page markers from the context, formatted as [Source: filename, Page: N]. Never fabricate citations.
+- Cite only [Source: file, Page: N] markers that appear verbatim in the context below, using that exact file name and page number. Never invent, guess, or extrapolate a page number (for example, do not cite a page beyond those shown in the context). If the supporting page is not shown in the context, do not cite it.
 - Preserve safety warnings and prerequisites found in the documentation.
 
 Response style:

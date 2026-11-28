@@ -1,19 +1,21 @@
 /* ==========================================================================
    TELECOM INTELLIGENCE AI - DESIGN SYSTEM
-   Inspired by Huawei Enterprise ICT & NOC Interfaces
+   Minimal black / white style: Manrope, grey page, flat white blocks.
    ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap");
 
 /* --------------------------------------------------------------------------
    CSS CUSTOM PROPERTIES (Design Tokens)
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand Colors - Huawei Inspired */
-  --color-primary: #C7000B;
-  --color-primary-hover: #E02128;
-  --color-primary-dark: #850F12;
-  --color-primary-light: #FDF2F2;
-  
-  /* Semantic Colors */
+  /* Brand colors: black primary; red is an accent only (logo mark, errors, critical alerts) */
+  --color-primary: #000000;
+  --color-primary-hover: #333333;
+  --color-primary-dark: #000000;
+  --color-primary-light: #F1F3F5;
+  --color-accent: #C7000B;
+
+  /* Semantic Colors (status badges) */
   --color-success: #62B230;
   --color-success-bg: #F0F9EB;
   --color-warning: #ED6D00;
@@ -22,37 +24,38 @@
   --color-info-bg: #EFFBFc;
   --color-error: #CF0B0B;
   --color-error-bg: #FDF2F2;
-  
+
   /* Neutral Colors */
   --color-bg-primary: #FFFFFF;
-  --color-bg-secondary: #F3F3F3;
-  --color-bg-tertiary: #EBEBEB;
+  --color-bg-secondary: #F1F3F5;
+  --color-bg-tertiary: #E8EAED;
   --color-bg-card: #FFFFFF;
-  --color-bg-hover: #F8F8F8;
-  
-  --color-text-primary: #333333;
+  --color-bg-hover: #F1F3F5;
+
+  --color-text-primary: #000000;
   --color-text-secondary: #666666;
-  --color-text-muted: #808080;
+  --color-text-muted: #7F7F7F;
+  --color-text-faint: #B2B2B2;
   --color-text-inverse: #FFFFFF;
-  --color-text-link: #C7000B;
-  
-  --color-border-light: #DFDFDF;
-  --color-border-medium: #D0D0D0;
-  --color-border-dark: #C0C0C0;
-  --color-divider: #EBEBEB;
-  
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
-  
+  --color-text-link: #000000;
+
+  --color-border-light: #D9D9D9;
+  --color-border-medium: #D9D9D9;
+  --color-border-dark: #B2B2B2;
+  --color-divider: #E8EAED;
+
+  /* Shadows: flat design */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+
   /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
   --radius-full: 9999px;
   
   /* Spacing */
@@ -67,7 +70,7 @@
   --space-12: 48px;
   
   /* Typography */
-  --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-base: "Manrope", Arial, "Helvetica Neue", Helvetica, sans-serif;
   --font-family-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
   
   --font-size-xs: 0.75rem;    /* 12px */
@@ -75,8 +78,8 @@
   --font-size-base: 1rem;     /* 16px */
   --font-size-lg: 1.125rem;   /* 18px */
   --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-2xl: 1.625rem;  /* 26px section heading */
+  --font-size-3xl: 2.5rem;    /* 40px page title */
   --font-size-4xl: 2.25rem;   /* 36px */
   
   --font-weight-normal: 400;
@@ -113,6 +116,9 @@
 .stApp {
   background-color: var(--color-bg-secondary) !important;
   font-family: var(--font-family-base) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  line-height: 24px !important;
   color: var(--color-text-primary) !important;
 }
 
@@ -129,20 +135,20 @@
    TYPOGRAPHY
    -------------------------------------------------------------------------- */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-semibold);
+  color: #000000 !important;
+  font-family: var(--font-family-base);
   line-height: var(--line-height-tight);
   margin-bottom: var(--space-3);
 }
 
-h1 { font-size: var(--font-size-3xl); }
-h2 { font-size: var(--font-size-2xl); }
-h3 { font-size: var(--font-size-xl); }
-h4 { font-size: var(--font-size-lg); }
+h1 { font-size: 40px; font-weight: 700; line-height: 50px; }
+h2 { font-size: 26px; font-weight: 500; line-height: 34px; }
+h3 { font-size: 18px; font-weight: 700; line-height: 26px; }
+h4 { font-size: 18px; font-weight: 700; line-height: 26px; }
 
-.caption { font-size: var(--font-size-xs); color: var(--color-text-muted); }
-.body-sm { font-size: var(--font-size-sm); line-height: var(--line-height-normal); }
-.body { font-size: var(--font-size-base); line-height: var(--line-height-normal); }
+.caption { font-size: 12px; font-weight: 500; line-height: 18px; color: var(--color-text-muted); }
+.body-sm { font-size: 14px; line-height: 20px; }
+.body { font-size: 16px; font-weight: 500; line-height: 24px; }
 .body-lg { font-size: var(--font-size-lg); line-height: var(--line-height-relaxed); }
 
 /* --------------------------------------------------------------------------
@@ -179,12 +185,11 @@ section[data-testid="stSidebar"] > div {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: var(--color-accent);
   color: var(--color-text-inverse);
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-lg);
   margin-bottom: var(--space-3);
-  box-shadow: var(--shadow-sm);
 }
 
 .sidebar-brand-title {
@@ -193,7 +198,7 @@ section[data-testid="stSidebar"] > div {
   color: var(--color-text-primary);
   margin: 0;
   text-align: center;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .sidebar-brand-subtitle {
@@ -220,8 +225,8 @@ section[data-testid="stSidebar"] > div {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
   transition: all var(--transition-fast);
   border: none;
@@ -236,9 +241,9 @@ section[data-testid="stSidebar"] > div {
 }
 
 .sidebar-nav-item.active {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
+  background-color: transparent;
+  color: #000000;
+  font-weight: var(--font-weight-bold);
 }
 
 .sidebar-nav-item.active::before {
@@ -303,16 +308,11 @@ section[data-testid="stSidebar"] > div {
    -------------------------------------------------------------------------- */
 .card {
   background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border-light);
+  border: none;
   border-radius: var(--radius-lg);
   padding: var(--space-5);
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-sm);
-  border-color: var(--color-border-medium);
+  box-shadow: none;
+  margin-bottom: var(--space-3);
 }
 
 .card-header {
@@ -325,9 +325,9 @@ section[data-testid="stSidebar"] > div {
 }
 
 .card-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
   margin: 0;
 }
 
@@ -340,19 +340,12 @@ section[data-testid="stSidebar"] > div {
 /* KPI Cards */
 .kpi-card {
   background-color: var(--color-bg-card);
-  border: 1px solid var(--color-border-light);
+  border: none;
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  transition: all var(--transition-normal);
-}
-
-.kpi-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-medium);
-  transform: translateY(-2px);
 }
 
 .kpi-header {
@@ -368,8 +361,8 @@ section[data-testid="stSidebar"] > div {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-md);
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+  background-color: var(--color-bg-secondary);
+  color: #000000;
   font-size: var(--font-size-xl);
 }
 
@@ -399,25 +392,29 @@ section[data-testid="stSidebar"] > div {
 }
 
 .kpi-label {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--color-text-muted);
   font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 /* --------------------------------------------------------------------------
    BUTTONS
+   Primary = black fill. Secondary = text-only link with a ">" chevron.
    -------------------------------------------------------------------------- */
 .stApp .stButton > button,
 .stButton > button {
-  border-radius: var(--radius-md) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font-family-base) !important;
   font-weight: var(--font-weight-medium) !important;
-  font-size: var(--font-size-sm) !important;
-  padding: var(--space-2) var(--space-4) !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+  padding: 7px 16px !important;
   height: auto !important;
-  min-height: 40px !important;
-  transition: all var(--transition-fast) !important;
+  min-height: 32px !important;
+  box-shadow: none !important;
+  transition: background-color var(--transition-fast), color var(--transition-fast) !important;
   border: 1px solid transparent !important;
 }
 
@@ -436,24 +433,54 @@ section[data-testid="stSidebar"] > div {
 .stButton > button[data-kind="primary"]:hover {
   background-color: var(--color-primary-hover) !important;
   border-color: var(--color-primary-hover) !important;
-  box-shadow: var(--shadow-sm) !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .stApp .stButton > button[kind="secondary"],
 .stButton > button[kind="secondary"],
 .stApp .stButton > button[data-kind="secondary"],
 .stButton > button[data-kind="secondary"] {
-  background-color: var(--color-bg-primary) !important;
-  border-color: var(--color-border-medium) !important;
-  color: var(--color-text-primary) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .stApp .stButton > button[kind="secondary"]:hover,
 .stButton > button[kind="secondary"]:hover,
 .stApp .stButton > button[data-kind="secondary"]:hover,
 .stButton > button[data-kind="secondary"]:hover {
-  background-color: var(--color-bg-hover) !important;
-  border-color: var(--color-border-dark) !important;
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+  text-decoration: underline;
+}
+
+/* Sidebar navigation: black bold text, active item marked by a left bar (no red fill) */
+section[data-testid="stSidebar"] .stButton > button {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 0 !important;
+  color: #000000 !important;
+  font-size: 14px !important;
+  font-weight: var(--font-weight-bold) !important;
+  padding: 8px 12px !important;
+}
+
+section[data-testid="stSidebar"] .stButton > button:hover {
+  background-color: var(--color-bg-secondary) !important;
+  color: #000000 !important;
+  text-decoration: none;
+}
+
+section[data-testid="stSidebar"] .stButton > button[kind="primary"],
+section[data-testid="stSidebar"] .stButton > button[data-kind="primary"] {
+  background-color: var(--color-bg-secondary) !important;
+  border-left: 3px solid #000000 !important;
+  color: #000000 !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -465,11 +492,11 @@ section[data-testid="stSidebar"] > div {
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea,
 .stSelectbox > div > div > div {
-  border-radius: var(--radius-md) !important;
-  border: 1px solid var(--color-border-medium) !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid #D9D9D9 !important;
   background-color: var(--color-bg-primary) !important;
   color: var(--color-text-primary) !important;
-  font-size: var(--font-size-sm) !important;
+  font-size: 14px !important;
   padding: var(--space-2) var(--space-3) !important;
   transition: all var(--transition-fast) !important;
 }
@@ -480,8 +507,8 @@ section[data-testid="stSidebar"] > div {
 .stTextInput > div > div > input:focus,
 .stTextArea > div > div > textarea:focus,
 .stSelectbox > div > div > div:focus-within {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px var(--color-primary-light) !important;
+  border-color: #000000 !important;
+  box-shadow: none !important;
 }
 
 .stApp .stSlider > div > div > div,
@@ -495,21 +522,21 @@ section[data-testid="stSidebar"] > div {
 .stApp .stChatMessage,
 .stChatMessage {
   background-color: var(--color-bg-card) !important;
-  border: 1px solid var(--color-border-light) !important;
+  border: none !important;
   border-radius: var(--radius-lg) !important;
   padding: var(--space-4) !important;
   margin-bottom: var(--space-3) !important;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: none !important;
 }
 
 .stApp .stChatMessage[data-testid="stChatMessage-user"],
 .stChatMessage[data-testid="stChatMessage-user"] {
-  border-left: 3px solid var(--color-info) !important;
+  border-left: 3px solid var(--color-border-dark) !important;
 }
 
 .stApp .stChatMessage[data-testid="stChatMessage-assistant"],
 .stChatMessage[data-testid="stChatMessage-assistant"] {
-  border-left: 3px solid var(--color-primary) !important;
+  border-left: 3px solid #000000 !important;
 }
 
 .stApp .stChatMessage .stMarkdown,
@@ -523,17 +550,17 @@ section[data-testid="stSidebar"] > div {
    -------------------------------------------------------------------------- */
 .stApp .stExpander,
 .stExpander {
-  border: 1px solid var(--color-border-light) !important;
-  border-radius: var(--radius-md) !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
   background-color: var(--color-bg-card) !important;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: none !important;
 }
 
 .stApp .stExpander > summary,
 .stExpander > summary {
-  background-color: var(--color-bg-secondary) !important;
+  background-color: var(--color-bg-card) !important;
   border-bottom: 1px solid var(--color-divider) !important;
-  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
   padding: var(--space-3) var(--space-4) !important;
   font-weight: var(--font-weight-medium) !important;
   font-size: var(--font-size-sm) !important;
@@ -557,11 +584,11 @@ section[data-testid="stSidebar"] > div {
 
 .stApp .stTabs [data-baseweb="tab"],
 .stTabs [data-baseweb="tab"] {
-  background-color: var(--color-bg-secondary) !important;
-  border-radius: var(--radius-md) !important;
+  background-color: var(--color-bg-card) !important;
+  border-radius: var(--radius-sm) !important;
   padding: var(--space-3) var(--space-5) !important;
-  font-weight: var(--font-weight-medium) !important;
-  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-bold) !important;
+  font-size: 14px !important;
   color: var(--color-text-secondary) !important;
   border: 1px solid var(--color-border-light) !important;
   transition: all var(--transition-fast) !important;
@@ -576,19 +603,19 @@ section[data-testid="stSidebar"] > div {
 .stApp .stTabs [aria-selected="true"],
 .stTabs [aria-selected="true"] {
   background-color: var(--color-bg-primary) !important;
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  box-shadow: var(--shadow-sm) !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  box-shadow: none !important;
 }
 
 /* --------------------------------------------------------------------------
    DATA TABLE / DATAFRAME
    -------------------------------------------------------------------------- */
 .stDataFrame {
-  border: 1px solid var(--color-border-light) !important;
+  border: none !important;
   border-radius: var(--radius-lg) !important;
   overflow: hidden !important;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: none !important;
 }
 
 .stDataFrame [data-testid="stTable"] {
@@ -663,19 +690,19 @@ section[data-testid="stSidebar"] > div {
 .stApp [data-testid="stMetric"],
 [data-testid="stMetric"] {
   background-color: var(--color-bg-card) !important;
-  border: 1px solid var(--color-border-light) !important;
+  border: none !important;
   border-radius: var(--radius-lg) !important;
   padding: var(--space-4) !important;
-  box-shadow: var(--shadow-xs) !important;
+  box-shadow: none !important;
 }
 
 .stApp [data-testid="stMetricLabel"],
 [data-testid="stMetricLabel"] {
-  font-size: var(--font-size-xs) !important;
+  font-size: 12px !important;
   font-weight: var(--font-weight-medium) !important;
   color: var(--color-text-muted) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
 }
 
 .stApp [data-testid="stMetricValue"],
@@ -712,8 +739,8 @@ section[data-testid="stSidebar"] > div {
 
 .stApp .stFileUploader:hover,
 .stFileUploader:hover {
-  border-color: var(--color-primary) !important;
-  background-color: var(--color-primary-light) !important;
+  border-color: #000000 !important;
+  background-color: var(--color-bg-secondary) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -797,8 +824,8 @@ section[data-testid="stSidebar"] > div {
 .rounded { border-radius: var(--radius-md); }
 .rounded-lg { border-radius: var(--radius-lg); }
 
-.shadow { box-shadow: var(--shadow-sm); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow { box-shadow: none; }
+.shadow-lg { box-shadow: none; }
 
 /* Empty State */
 .empty-state {
@@ -808,9 +835,9 @@ section[data-testid="stSidebar"] > div {
   justify-content: center;
   padding: var(--space-12) var(--space-6);
   text-align: center;
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
-  border: 1px dashed var(--color-border-medium);
+  border: none;
 }
 
 .empty-state-icon {
@@ -839,7 +866,7 @@ section[data-testid="stSidebar"] > div {
   display: inline-flex;
   align-items: center;
   padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-xs);
+  font-size: 12px;
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-full);
 }
@@ -849,12 +876,12 @@ section[data-testid="stSidebar"] > div {
 .badge-error { background-color: var(--color-error-bg); color: var(--color-error); }
 .badge-info { background-color: var(--color-info-bg); color: var(--color-info); }
 .badge-neutral { background-color: var(--color-bg-tertiary); color: var(--color-text-muted); }
-.badge-primary { background-color: var(--color-primary-light); color: var(--color-primary); }
+.badge-primary { background-color: var(--color-bg-secondary); color: #000000; }
 
 /* Source Citation */
 .source-citation {
   background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-light);
+  border: none;
   border-radius: var(--radius-md);
   padding: var(--space-3);
   margin-bottom: var(--space-2);
@@ -877,4 +904,149 @@ section[data-testid="stSidebar"] > div {
   line-height: var(--line-height-normal);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* ==========================================================================
+   OVERRIDES (loaded last)
+   ========================================================================== */
+
+/* --- Font: force Manrope everywhere except Material icon glyphs ---------- */
+.stApp,
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+.stApp p, .stApp li, .stApp label, .stApp input, .stApp textarea,
+.stApp button, .stApp select,
+[data-testid="stMarkdownContainer"] *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not(span[style*="Material Symbols"]):not([translate="no"][role="img"]),
+[data-testid="stSidebar"] *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not(span[style*="Material Symbols"]):not([translate="no"][role="img"]) {
+  font-family: var(--font-family-base) !important;
+}
+
+/* Material icon glyphs must keep their icon font (inline <span> inside labels too) */
+.stApp [data-testid="stIconMaterial"],
+.stApp .material-symbols-rounded,
+.stApp .material-symbols-outlined,
+.stApp span[style*="Material Symbols"],
+.stApp [translate="no"][role="img"] {
+  font-family: "Material Symbols Rounded", "Material Symbols Outlined" !important;
+}
+
+/* --- Headings: fixed scale (beats Streamlit's own heading sizes) --------- */
+.stApp h1,
+.stApp [data-testid="stMarkdownContainer"] h1,
+.stApp [data-testid="stHeading"] h1 {
+  font-size: 40px !important;
+  font-weight: 700 !important;
+  line-height: 50px !important;
+  color: #000000 !important;
+}
+
+.stApp h2,
+.stApp [data-testid="stMarkdownContainer"] h2 {
+  font-size: 26px !important;
+  font-weight: 500 !important;
+  line-height: 34px !important;
+  color: #000000 !important;
+}
+
+.stApp h3, .stApp h4,
+.stApp [data-testid="stMarkdownContainer"] h3,
+.stApp [data-testid="stMarkdownContainer"] h4 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 26px !important;
+  color: #000000 !important;
+}
+
+/* --- Buttons: Streamlit marks the variant with kind and/or data-testid --- */
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #000000 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]):hover {
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+  text-decoration: underline;
+}
+
+.stApp .stButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]) {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+.stApp .stButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]):hover {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+/* Left-align the label (button, its inner div, and the paragraph) */
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]) > div,
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]) [data-testid="stMarkdownContainer"],
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]) p {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+/* Chevron sits inline right after the text, 4px gap (not at the button edge) */
+.stApp .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]) p::after {
+  content: ">";
+  display: inline;
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+/* --- Sidebar nav: left-aligned, grey hover, grey + black bar when active -- */
+.stApp section[data-testid="stSidebar"] .stButton > button,
+.stApp section[data-testid="stSidebar"] .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]),
+.stApp section[data-testid="stSidebar"] .stButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]) {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 0 !important;
+  color: #000000 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  padding: 8px 12px !important;
+}
+
+.stApp section[data-testid="stSidebar"] .stButton > button > div,
+.stApp section[data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"],
+.stApp section[data-testid="stSidebar"] .stButton > button p {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  color: #000000 !important;
+}
+
+.stApp section[data-testid="stSidebar"] .stButton > button p::after {
+  content: none !important;
+}
+
+.stApp section[data-testid="stSidebar"] .stButton > button:hover,
+.stApp section[data-testid="stSidebar"] .stButton > button:is([kind="secondary"], [data-testid="stBaseButton-secondary"]):hover,
+.stApp section[data-testid="stSidebar"] .stButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]):hover {
+  background-color: #F1F3F5 !important;
+  color: #000000 !important;
+  text-decoration: none;
+}
+
+.stApp section[data-testid="stSidebar"] .stButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]) {
+  background-color: #F1F3F5 !important;
+  border-left: 3px solid #000000 !important;
+}
+
+/* --- Sidebar brand title: single line, not the global h2 size ------------ */
+.stApp section[data-testid="stSidebar"] .sidebar-brand-title,
+.stApp section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2.sidebar-brand-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 26px !important;
+  white-space: nowrap;
+  margin: 0 !important;
 }

@@ -22,14 +22,14 @@ from frontend.components.session_state import (
 
 # Navigation pages configuration
 NAVIGATION_ITEMS = [
-    {"key": "overview", "label": "Overview", "icon": "📊"},
-    {"key": "ai_assistant", "label": "AI Troubleshooting Assistant", "icon": "🤖"},
-    {"key": "knowledge_base", "label": "Knowledge Base", "icon": "📚"},
-    {"key": "network_docs", "label": "Network Documentation", "icon": "🗂️"},
-    {"key": "system_health", "label": "System Health", "icon": "🏥"},
-    {"key": "chat_history", "label": "Chat History", "icon": "💬"},
+    {"key": "overview", "label": "Overview", "icon": ":material/dashboard:"},
+    {"key": "ai_assistant", "label": "AI Troubleshooting Assistant", "icon": ":material/smart_toy:"},
+    {"key": "knowledge_base", "label": "Knowledge Base", "icon": ":material/menu_book:"},
+    {"key": "network_docs", "label": "Network Documentation", "icon": ":material/folder_open:"},
+    {"key": "system_health", "label": "System Health", "icon": ":material/monitor_heart:"},
+    {"key": "chat_history", "label": "Chat History", "icon": ":material/chat:"},
     {"key": "feedback_dashboard", "label": "Feedback review", "icon": ":material/rate_review:"},
-    {"key": "settings", "label": "Settings", "icon": "⚙️"},
+    {"key": "settings", "label": "Settings", "icon": ":material/settings:"},
 ]
 
 
@@ -88,7 +88,7 @@ def render_chat_sessions():
         st.rerun()
 
     result = list_chat_sessions()
-    if "error" in result:
+    if result.get("error"):
         st.caption("Saved chats are unavailable.")
         return
 
@@ -105,13 +105,13 @@ def render_chat_sessions():
         title = session.get("title") or "Untitled conversation"
         button_title = title if len(title) <= 32 else f"{title[:29].rstrip()}..."
         if st.button(
-            f"💬 {button_title}",
+            f":material/chat: {button_title}",
             key=f"sidebar_chat_{session_id}",
             use_container_width=True,
             type="primary" if session_id == current_session_id else "secondary",
         ):
             conversation = get_chat_session(session_id)
-            if "error" in conversation:
+            if conversation.get("error"):
                 st.error(conversation["error"])
             else:
                 set_active_session(
@@ -127,7 +127,7 @@ def render_system_status():
     if st.session_state.health_status:
         health = st.session_state.health_status
         
-        if "error" not in health:
+        if not health.get("error"):
             status_map = {
                 "healthy": "online",
                 "degraded": "degraded",
@@ -214,7 +214,7 @@ def render_sidebar():
         # Refresh health button
         col1, col2 = st.columns([3, 1])
         with col1:
-            if st.button("🔄 Refresh", use_container_width=True, key="sidebar_refresh"):
+            if st.button(":material/refresh: Refresh", use_container_width=True, key="sidebar_refresh"):
                 st.session_state.health_status = call_api("/health")
                 st.rerun()
         with col2:

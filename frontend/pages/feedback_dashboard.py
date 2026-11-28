@@ -29,7 +29,7 @@ def render_feedback_dashboard() -> None:
     )
     rating_filter = _RATING_FILTERS[selected_filter or "All"]
     result = get_feedback_summary(limit=50, rating=rating_filter)
-    if "error" in result:
+    if result.get("error"):
         st.error(result["error"], title="Feedback unavailable")
         return
 

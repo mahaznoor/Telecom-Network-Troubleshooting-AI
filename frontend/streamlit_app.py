@@ -1,7 +1,6 @@
 """Telecom Intelligence AI - Main Streamlit Application.
 
-Professional enterprise dashboard for telecom network troubleshooting
-inspired by Huawei NOC interfaces.
+Professional enterprise dashboard for telecom network troubleshooting.
 """
 
 import streamlit as st

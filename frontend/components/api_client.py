@@ -158,7 +158,7 @@ def register_user(name: str, email: str, password: str) -> Dict[str, Any]:
         {"name": name, "email": email, "password": password},
         timeout=15,
     )
-    if "error" in result:
+    if result.get("error"):
         return {"error": result["error"]}
     return result
 
@@ -309,7 +309,7 @@ def login_user(email: str, password: str) -> Dict[str, Any]:
         {"email": email, "password": password},
         timeout=15,
     )
-    if "error" in result:
+    if result.get("error"):
         return {"error": result["error"]}
     return result
 
@@ -453,7 +453,7 @@ def get_collection_stats() -> Dict[str, Any]:
     """Get vector store statistics."""
     # This uses the chat service stats via health endpoint
     health = call_api("/health")
-    if "error" not in health:
+    if not health.get("error"):
         return {
             "document_count": health.get("document_count", 0),
             "embedding_model": health.get("embedding_model", "unknown"),

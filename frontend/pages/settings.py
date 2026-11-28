@@ -64,7 +64,7 @@ def _submit_password_change() -> None:
         new_password,
         True,
     )
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_security_error"] = result["error"]
         return
     if result.get("access_token"):
@@ -80,7 +80,7 @@ def _submit_password_change() -> None:
 
 def _refresh_active_sessions() -> None:
     result = list_active_sessions()
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_active_sessions"] = None
         st.session_state["settings_sessions_error"] = result["error"]
         return
@@ -90,7 +90,7 @@ def _refresh_active_sessions() -> None:
 
 def _refresh_security_activity() -> None:
     result = get_security_activity()
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_security_activity"] = None
         st.session_state["settings_security_activity_error"] = result["error"]
         return
@@ -100,7 +100,7 @@ def _refresh_security_activity() -> None:
 
 def _revoke_active_session(session_id: str) -> None:
     result = revoke_active_session(session_id)
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_sessions_error"] = result["error"]
         st.session_state["settings_sessions_success"] = None
         return
@@ -122,7 +122,7 @@ def _revoke_active_session(session_id: str) -> None:
 def _submit_profile_update() -> None:
     name = st.session_state.get("settings_profile_name", "")
     result = update_profile(name)
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_account_error"] = result["error"]
         st.session_state["settings_account_success"] = None
         return
@@ -143,7 +143,7 @@ def _submit_email_change() -> None:
     new_email = st.session_state.get("settings_new_email", "")
     st.session_state["settings_email_current_password"] = ""
     result = request_email_change(current_password, new_email)
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_account_error"] = result["error"]
         st.session_state["settings_account_success"] = None
         return
@@ -172,7 +172,7 @@ def _submit_account_deletion() -> None:
         return
 
     result = delete_account(current_password, confirmation)
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_delete_error"] = result["error"]
         return
 
@@ -195,7 +195,7 @@ def _cancel_logout_all() -> None:
 
 def _confirm_logout_all() -> None:
     result = logout_all_devices()
-    if "error" in result:
+    if result.get("error"):
         st.session_state["settings_security_error"] = result["error"]
         return
 
@@ -220,7 +220,7 @@ def _cancel_vector_database_deletion() -> None:
 
 def _confirm_vector_database_deletion() -> None:
     result = delete_vector_database(confirm=True)
-    if "error" in result or result.get("status") != "success":
+    if result.get("error") or result.get("status") != "success":
         st.session_state["settings_vector_delete_error"] = result.get(
             "error",
             result.get("message", "Vector database deletion failed."),
@@ -243,7 +243,7 @@ def render_settings_page():
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <h1 style="margin: 0 0 8px;">⚙️ Settings</h1>
+        <h1 style="margin: 0 0 8px;">Settings</h1>
         <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
             Configure application behavior and view system configuration.
         </p>
@@ -495,7 +495,7 @@ def render_settings_page():
         st.markdown(f"""
         <div style="padding: 12px; background: var(--color-bg-secondary); border-radius: var(--radius-md); margin-bottom: 16px;">
             <div style="font-weight: 500; color: var(--color-text-primary);">Groq</div>
-            <div style="font-size: 0.875rem; color: var(--color-text-secondary);">{health.get('llm_model', 'llama-3.1-70b-versatile') if health else 'llama-3.1-70b-versatile'}</div>
+            <div style="font-size: 0.875rem; color: var(--color-text-secondary);">{health.get('llm_model', 'openai/gpt-oss-120b') if health else 'openai/gpt-oss-120b'}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -596,7 +596,7 @@ def render_settings_page():
         ("Backend", "FastAPI"),
         ("Vector Store", "ChromaDB"),
         ("Embedding Model", "BAAI/bge-small-en-v1.5 (384-dim)"),
-        ("LLM Provider", "Groq (llama-3.1-70b-versatile)"),
+        ("LLM Provider", "Groq (openai/gpt-oss-120b)"),
     ]
     
     for label, value in app_info:
@@ -634,7 +634,7 @@ def render_settings_page():
         st.caption(f"Collection: {settings.CHROMA_COLLECTION_NAME}")
         if st.button("📊 View Collection Stats", use_container_width=True, key="settings_view_stats"):
             result = call_api("/health")
-            if "error" in result:
+            if result.get("error"):
                 st.error(result["error"], title="Health check failed")
             else:
                 vector_status = get_vector_db_status(result)
@@ -675,7 +675,7 @@ def render_settings_page():
         if st.button("🗑️ Clear My Chat Sessions", use_container_width=True, type="secondary", key="settings_clear_sessions"):
             from frontend.components import clear_all_sessions, clear_session_history, new_session
             result = clear_all_sessions()
-            if "error" not in result:
+            if not result.get("error"):
                 clear_session_history()
                 new_session()
                 st.success("Your chat sessions were cleared")

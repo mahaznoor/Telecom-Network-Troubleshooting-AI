@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # Groq LLM Settings
     GROQ_API_KEY: str = ""
-    LLM_MODEL: str = "llama-3.1-70b-versatile"  # GPT-OSS 120B not yet on Groq; use best available
+    LLM_MODEL: str = "openai/gpt-oss-120b"
     LLM_TEMPERATURE: float = 0.1
     LLM_MAX_TOKENS: int = 4096
 

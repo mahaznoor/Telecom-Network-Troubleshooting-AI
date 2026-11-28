@@ -76,7 +76,7 @@ def render_document_search():
                 use_mmr=True,
             )
         
-        if "error" not in result:
+        if not result.get("error"):
             st.markdown("### Search Results")
             sources = result.get("results", [])
             if sources:
@@ -108,7 +108,7 @@ def render_network_docs_page():
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <h1 style="margin: 0 0 8px;">🗂️ Network Documentation</h1>
+        <h1 style="margin: 0 0 8px;">Network Documentation</h1>
         <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
             Browse and search telecom technical documentation organized by category.
         </p>

@@ -131,7 +131,7 @@ def render_document_table():
     """, unsafe_allow_html=True)
     
     result = get_documents_list()
-    if "error" in result:
+    if result.get("error"):
         st.error(result["error"], title="Could not load indexed documents")
     else:
         documents = result.get("documents", [])
@@ -217,7 +217,7 @@ def render_document_table():
                         ):
                             deletion = delete_indexed_document(pending_id)
                             if (
-                                "error" in deletion
+                                deletion.get("error")
                                 or deletion.get("status") != "success"
                             ):
                                 st.error(
@@ -255,7 +255,7 @@ def render_knowledge_base_page():
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <h1 style="margin: 0 0 8px;">📚 Knowledge Base</h1>
+        <h1 style="margin: 0 0 8px;">Knowledge Base</h1>
         <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
             Manage your telecom technical documentation and manuals.
         </p>

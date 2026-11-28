@@ -118,7 +118,7 @@ def render_response_feedback(session_id: str, message_id: int) -> None:
         rating="helpful" if rating == 1 else "not_helpful",
         comment=comment.strip() or None,
     )
-    if "error" in result:
+    if result.get("error"):
         st.error(result["error"])
     else:
         st.success("Feedback saved. Submit again to change your rating or comment.")
@@ -167,7 +167,7 @@ def handle_user_question(question: str):
         if response_session_id:
             st.session_state.session_id = response_session_id
 
-        if "error" in result:
+        if result.get("error"):
             error_msg = f"❌ **Error:** {result.get('answer') or result['error']}"
             st.error(error_msg)
             add_message("assistant", error_msg)
@@ -242,7 +242,7 @@ def render_ai_assistant_page():
     # Page header
     st.markdown("""
     <div style="margin-bottom: 24px;">
-        <h1 style="margin: 0 0 8px;">🤖 AI Troubleshooting Assistant</h1>
+        <h1 style="margin: 0 0 8px;">AI Troubleshooting Assistant</h1>
         <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
             Intelligent telecom network diagnosis powered by your technical manuals.
         </p>
@@ -261,7 +261,7 @@ def render_ai_assistant_page():
         if st.button("🗑️ Clear History", use_container_width=True, key="ai_clear_history"):
             if get_chat_history():
                 result = clear_session(get_session_id())
-                if "error" in result:
+                if result.get("error"):
                     st.error(result["error"])
                 else:
                     clear_session_history()

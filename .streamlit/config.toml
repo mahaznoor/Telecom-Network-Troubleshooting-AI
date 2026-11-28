@@ -1,0 +1,13 @@
+[theme]
+primaryColor = "#000000"
+backgroundColor = "#F1F3F5"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#000000"
+font = "Manrope"
+headingFont = "Manrope"
+baseFontSize = 16
+headingFontSizes = ["40px", "26px", "18px"]
+headingFontWeights = [700, 500, 700]
+
+[client]
+showSidebarNavigation = false

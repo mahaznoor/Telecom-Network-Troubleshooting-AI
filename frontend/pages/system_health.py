@@ -172,7 +172,7 @@ def render_system_health_page():
     with col1:
         st.markdown("""
         <div style="margin-bottom: 24px;">
-            <h1 style="margin: 0 0 8px;">🏥 System Health</h1>
+            <h1 style="margin: 0 0 8px;">System Health</h1>
             <p style="color: var(--color-text-secondary); margin: 0; font-size: 1.125rem;">
                 Monitor the health and status of all system components.
             </p>
@@ -194,7 +194,7 @@ def render_system_health_page():
         st.info("Click 'Refresh Health' to check system status.")
         return
     
-    if "error" in health:
+    if health.get("error"):
         st.error(health["error"], title="Health check failed")
         return
     

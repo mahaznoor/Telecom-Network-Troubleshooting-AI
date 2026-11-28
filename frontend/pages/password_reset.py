@@ -19,7 +19,7 @@ def _submit_password_reset(token: str) -> None:
         return
 
     result = reset_password(token, new_password)
-    if "error" in result:
+    if result.get("error"):
         st.session_state["password_reset_error"] = result["error"]
         return
 

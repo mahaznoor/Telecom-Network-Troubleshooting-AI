@@ -29,7 +29,7 @@ def _consume_verification_link() -> None:
             }
         else:
             result = verify_email_change(token)
-        if "error" in result:
+        if result.get("error"):
             st.session_state.auth_error = result["error"]
             st.session_state.auth_success = None
             st.session_state.auth_success_title = None
@@ -57,7 +57,7 @@ def _consume_verification_link() -> None:
         return
 
     result = verify_email(token)
-    if "error" in result:
+    if result.get("error"):
         st.session_state.auth_error = result["error"]
         st.session_state.auth_success = None
         st.session_state.auth_success_title = None
@@ -75,12 +75,14 @@ def _submit_login() -> None:
     password = st.session_state.get("auth_login_password", "")
     result = login_user(email, password)
     st.session_state.auth_login_password = ""
-    if "error" in result:
+    if result.get("error"):
         st.session_state.auth_error = result["error"]
         st.session_state.auth_success = None
         st.session_state.auth_success_title = None
         return
     set_authenticated_session(result)
+    # Force a fresh health check after sign-in instead of reusing a stale result.
+    st.session_state.health_status = None
 
 
 def _submit_registration() -> None:
@@ -90,7 +92,7 @@ def _submit_registration() -> None:
     result = register_user(name, email, password)
     st.session_state.auth_register_password = ""
     st.session_state.auth_resend_email = email
-    if "error" in result:
+    if result.get("error"):
         st.session_state.auth_error = result["error"]
         st.session_state.auth_success = None
         st.session_state.auth_success_title = None
@@ -106,7 +108,7 @@ def _submit_registration() -> None:
 def _submit_resend_verification() -> None:
     email = st.session_state.get("auth_resend_email", "")
     result = resend_verification(email)
-    if "error" in result:
+    if result.get("error"):
         st.session_state.auth_error = result["error"]
         st.session_state.auth_success = None
         st.session_state.auth_success_title = None
@@ -136,7 +138,7 @@ def _show_sign_in() -> None:
 def _submit_password_reset_request() -> None:
     email = st.session_state.get("auth_password_reset_email", "")
     result = request_password_reset(email)
-    if "error" in result:
+    if result.get("error"):
         st.session_state.auth_error = result["error"]
         st.session_state.auth_success = None
         st.session_state.auth_success_title = None
